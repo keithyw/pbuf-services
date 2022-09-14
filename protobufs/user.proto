@@ -1,0 +1,13 @@
+syntax = "proto3";
+package protobufs;
+
+option go_package = "./protobufs";
+
+message UserMessage {
+    string username = 1;
+
+}
+
+service User {
+    rpc SaveUser(UserMessage) returns (UserMessage) {}
+}
