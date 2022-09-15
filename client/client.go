@@ -16,9 +16,22 @@ func main() {
 	defer conn.Close()
 
 	client := protobufs.NewUserClient(conn)
-	res, err := client.SaveUser(context.Background(), &protobufs.UserMessage{Username: "testuser"})
+	username := "testuser"
+	res, err := client.SaveUser(context.Background(), &protobufs.UserMessage{UserId: 123, Username: &username})
 	if err != nil {
-		log.Fatalf("Failed calling UserMessage: %s", err)
+		log.Fatalf("Failed calling SaveUser: %s", err)
 	}
-	log.Printf("Response: %s", res.Username)
+	log.Printf("Response: %s", res.Msg)
+
+	res, err = client.UpdateUser(context.Background(), &protobufs.UserMessage{UserId: 123, Username: &username})
+	if err != nil {
+		log.Fatalf("Failed calling UpdateUser: %s", err)
+	}
+	log.Printf("Response: %s", res.Msg)
+
+	res, err = client.DeleteUser(context.Background(), &protobufs.UserMessage{UserId: 123})
+	if err != nil {
+		log.Fatalf("Failed calling Deleting: %s", err)
+	}
+	log.Printf("Response: %s", res.Msg)
 }

@@ -4,10 +4,19 @@ package protobufs;
 option go_package = "./protobufs";
 
 message UserMessage {
-    string username = 1;
+    int64 user_id = 1;
+    optional string username = 2;
+}
 
+message UserServiceResponse {
+    optional string id = 1;
+    bool has_success = 2;
+    string msg = 3;
+    
 }
 
 service User {
-    rpc SaveUser(UserMessage) returns (UserMessage) {}
+    rpc DeleteUser(UserMessage) returns (UserServiceResponse) {}
+    rpc SaveUser(UserMessage) returns (UserServiceResponse) {}
+    rpc UpdateUser(UserMessage) returns (UserServiceResponse) {}
 }

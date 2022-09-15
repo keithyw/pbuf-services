@@ -22,7 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
-	SaveUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserMessage, error)
+	DeleteUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserServiceResponse, error)
+	SaveUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserServiceResponse, error)
+	UpdateUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserServiceResponse, error)
 }
 
 type userClient struct {
@@ -33,9 +35,27 @@ func NewUserClient(cc grpc.ClientConnInterface) UserClient {
 	return &userClient{cc}
 }
 
-func (c *userClient) SaveUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserMessage, error) {
-	out := new(UserMessage)
+func (c *userClient) DeleteUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserServiceResponse, error) {
+	out := new(UserServiceResponse)
+	err := c.cc.Invoke(ctx, "/protobufs.User/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) SaveUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserServiceResponse, error) {
+	out := new(UserServiceResponse)
 	err := c.cc.Invoke(ctx, "/protobufs.User/SaveUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) UpdateUser(ctx context.Context, in *UserMessage, opts ...grpc.CallOption) (*UserServiceResponse, error) {
+	out := new(UserServiceResponse)
+	err := c.cc.Invoke(ctx, "/protobufs.User/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +66,9 @@ func (c *userClient) SaveUser(ctx context.Context, in *UserMessage, opts ...grpc
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
-	SaveUser(context.Context, *UserMessage) (*UserMessage, error)
+	DeleteUser(context.Context, *UserMessage) (*UserServiceResponse, error)
+	SaveUser(context.Context, *UserMessage) (*UserServiceResponse, error)
+	UpdateUser(context.Context, *UserMessage) (*UserServiceResponse, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -54,8 +76,14 @@ type UserServer interface {
 type UnimplementedUserServer struct {
 }
 
-func (UnimplementedUserServer) SaveUser(context.Context, *UserMessage) (*UserMessage, error) {
+func (UnimplementedUserServer) DeleteUser(context.Context, *UserMessage) (*UserServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedUserServer) SaveUser(context.Context, *UserMessage) (*UserServiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveUser not implemented")
+}
+func (UnimplementedUserServer) UpdateUser(context.Context, *UserMessage) (*UserServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -68,6 +96,24 @@ type UnsafeUserServer interface {
 
 func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
 	s.RegisterService(&User_ServiceDesc, srv)
+}
+
+func _User_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protobufs.User/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).DeleteUser(ctx, req.(*UserMessage))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _User_SaveUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -88,6 +134,24 @@ func _User_SaveUser_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).UpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protobufs.User/UpdateUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).UpdateUser(ctx, req.(*UserMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -96,8 +160,16 @@ var User_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UserServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "DeleteUser",
+			Handler:    _User_DeleteUser_Handler,
+		},
+		{
 			MethodName: "SaveUser",
 			Handler:    _User_SaveUser_Handler,
+		},
+		{
+			MethodName: "UpdateUser",
+			Handler:    _User_UpdateUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
